@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coin Toss</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
-    <h1></h1> Coin Toss!</h1>
+    <h1>Coin Toss!</h1>
     <img id="coin">
+
     <button onclick="toss()">Toss!</button>
+
+    <div class="timer-block">
+        <input type="number" id="timerInput" min="1" max="60" value="10" placeholder="сек">
+        <button id="timerBtn" onclick="startAutoToss()">Auto Toss</button>
+        <span id="countdown"></span>
+    </div>
 
     <div class="card">
         <div class="stat"><span class="num" id="tot">0</span><span class="lbl">Total</span></div>
@@ -20,23 +26,59 @@
 
 <script>
     let tot = 0, h = 0, t = 0;
+    let autoInterval = null;
+    let countdownInterval = null;
 
-    function toss() {
-        const isHeads = Math.random() < 0.5;
-        const coin = document.getElementById("coin");
+function toss() {
+    const isHeads = Math.random() < 0.5;
+    const coin = document.getElementById("coin");
 
-        coin.classList.remove("spinning");
-        void coin.offsetWidth;
-        coin.classList.add("spinning");
+    coin.classList.remove("spinning");
+    void coin.offsetWidth; // animation breaks
+    coin.classList.add("spinning");
 
-        setTimeout(() => {
-            coin.src = isHeads ? "images/Image20260312091501.png" : "images/Image20260312091456.png";
-        }, 300);
+    // a bit of delay so the image swap isn't instant
+    setTimeout(() => {
+        coin.src = isHeads ? "images/Image20260312091501.png" : "images/Image20260312091456.png";
+    }, 300);
 
-        tot++; isHeads ? h++ : t++;
-        document.getElementById("tot").textContent = tot;
-        document.getElementById("h").textContent = h;
-        document.getElementById("t").textContent = t;
+    tot++; isHeads ? h++ : t++;
+    document.getElementById("tot").textContent = tot;
+    document.getElementById("h").textContent = h;
+    document.getElementById("t").textContent = t;
+}
+
+function startAutoToss() {
+    if (autoInterval) {
+        stopAutoToss();
+        return;
+    }
+
+    const duration = parseInt(document.getElementById("timerInput").value) || 10;
+    let remaining = duration;
+
+    document.getElementById("timerBtn").textContent = "Stop";
+    document.getElementById("countdown").textContent = `${remaining}s`;
+
+    toss(); // first toss immediately
+    autoInterval = setInterval(toss, 800);
+
+    // counts down separately from the toss interval
+    countdownInterval = setInterval(() => {
+        remaining--;
+        document.getElementById("countdown").textContent = `${remaining}s`;
+
+        if (remaining <= 0) stopAutoToss();
+    }, 1000);
+}
+
+    function stopAutoToss() {
+        clearInterval(autoInterval);
+        clearInterval(countdownInterval);
+        autoInterval = null;
+        countdownInterval = null;
+        document.getElementById("timerBtn").textContent = "Auto Toss";
+        document.getElementById("countdown").textContent = "Ready!";
     }
 </script>
 </body>
